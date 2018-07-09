@@ -18,35 +18,50 @@ d6e3b856125f5e6aa5fb40c8b112d5e9:
   language: en
   slug: engage-ny
 
-# :
-#   language: 
-#   slug: 
 
-# :
-#   language: 
-#   slug: 
+30c71c99c42c57d181e8aeafd2e15e5f:
+  language: sikana
+  slug: es
 
-# :
-#   language: 
-#   slug: 
+c1f2b7e6ac9f56a2bb44fa7a48b66dce:
+  language: es
+  slug: khan-academy
 
-# :
-#   language: 
-#   slug: 
+8fa678af1dd05329bf3218c549b84996:
+  language: es
+  slug: phet
 
-# :
-#   language: 
-#   slug: 
+913efe9f14c65cb1b23402f21f056e99:
+  language: multi
+  slug: mit-blossoms
 
-# :
-#   language: 
-#   slug: 
+a12aa60789ab5b11b7f0b87bafe093e5:
+  language: es
+  slug: engage-ny
 
-# :
-#   language: 
-#   slug: 
 
-# 0dd6374b9454405f8cd65049f7fc16c1:
-#   language: pt
-#   slug: test-channel
+8ef625db6e86506c9a3bac891e413fff:
+  language: fr
+  slug: sikana
 
+b336c2e2c45c53d5b24e5c476a54b077:
+  language: fr
+  slug: touchable-earth
+
+878ec2e6f88c5c268b1be6f202833cd4:
+  language: fr
+  slug: khan-academy
+
+
+a53592c972a8594e9b695aa127493ff6:
+  language: hi
+  slug: khan-academy
+
+131e543dbecf5776bb13cfcfddf05605:
+  language: multi
+  slug: pratham-books-storyweaver
+
+
+# 1ceff53605e55bef987d88e0908658c5:
+#   language: en
+#   slug: khan-academy

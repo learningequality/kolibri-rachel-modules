@@ -33,59 +33,65 @@ if __name__ == "__main__":
     if CHANNEL_ID is None:
         raise Exception("Environment variable KOLIBRI_CHANNEL_ID must be set.")
 
-    if CHANNEL_ID not in ALL_CHANNEL_DATA:
-        raise Exception("KOLIBRI_CHANNEL_ID is set to {}, which is not defined in channels.yml".format(CHANNEL_ID))
+    if CHANNEL_ID in ["*", "all"]:
+        channel_ids = ALL_CHANNEL_DATA.keys()
+    else:
+        if CHANNEL_ID not in ALL_CHANNEL_DATA:
+            raise Exception("KOLIBRI_CHANNEL_ID is set to {}, which is not defined in channels.yml".format(CHANNEL_ID))
+        channel_ids = [CHANNEL_ID]
 
-    channel_data = ALL_CHANNEL_DATA[CHANNEL_ID]
+    for channel_id in channel_ids:
 
-    assert channel_data.get("language", "")
-    assert channel_data.get("slug")
+        channel_data = ALL_CHANNEL_DATA[channel_id]
 
-    # calculate the module name and directory, and create the module directory if needed
-    module_name = "{language}-kolibri-channel-{slug}".format(**channel_data)
-    module_dir = os.path.join(TARGET_MODULE_DIR, module_name)
-    mkdir_p(module_dir)
+        assert channel_data.get("language", "")
+        assert channel_data.get("slug")
 
-    # set a temporary home directory for the module
-    os.environ["KOLIBRI_HOME"] = os.path.join(SOURCE_DIR, "tmphomes", module_name)
-    mkdir_p(os.environ["KOLIBRI_HOME"])
-    copy2(os.path.join(SOURCE_DIR, "db.sqlite3"), os.path.join(os.environ["KOLIBRI_HOME"], "db.sqlite3"))
-    
-    # set the content destination to the folder inside the module
-    os.environ["KOLIBRI_CONTENT_DIR"] = os.path.join(module_dir, "content")
+        # calculate the module name and directory, and create the module directory if needed
+        module_name = "{language}-kolibri-channel-{slug}".format(**channel_data)
+        module_dir = os.path.join(TARGET_MODULE_DIR, module_name)
+        mkdir_p(module_dir)
 
-    # download the latest channel metadata
-    subprocess.Popen(["kolibri", "manage", "importchannel", "network", CHANNEL_ID]).wait()
+        # set a temporary home directory for the module
+        os.environ["KOLIBRI_HOME"] = os.path.join(SOURCE_DIR, "tmphomes", module_name)
+        mkdir_p(os.environ["KOLIBRI_HOME"])
+        copy2(os.path.join(SOURCE_DIR, "db.sqlite3"), os.path.join(os.environ["KOLIBRI_HOME"], "db.sqlite3"))
 
-    # import content files from a location on disk, if available?
-    if LOCAL_CONTENT_SOURCE_DIR:
-        subprocess.Popen(["kolibri", "manage", "importcontent", "disk", CHANNEL_ID, LOCAL_CONTENT_SOURCE_DIR]).wait()
+        # set the content destination to the folder inside the module
+        os.environ["KOLIBRI_CONTENT_DIR"] = os.path.join(module_dir, "content")
 
-    # download any new content files
-    subprocess.Popen(["kolibri", "manage", "importcontent", "network", CHANNEL_ID]).wait()
+        # download the latest channel metadata
+        subprocess.Popen(["kolibri", "manage", "importchannel", "network", channel_id]).wait()
 
-    # read the channel info from the database
-    conn = sqlite3.connect(os.path.join(module_dir, "content", "databases", CHANNEL_ID + ".sqlite3"))
-    c = conn.cursor()
-    version, name, description = c.execute("SELECT version, name, description FROM content_channelmetadata;").fetchone()
+        # import content files from a location on disk, if available?
+        if LOCAL_CONTENT_SOURCE_DIR:
+            subprocess.Popen(["kolibri", "manage", "importcontent", "disk", channel_id, LOCAL_CONTENT_SOURCE_DIR]).wait()
 
-    # remove the existing files in the top level of the module
-    for filename in os.listdir(module_dir):
-        filepath = os.path.join(module_dir, filename)
-        if not os.path.isdir(filepath):
-            os.remove(filepath)
+        # download any new content files
+        subprocess.Popen(["kolibri", "manage", "importcontent", "network", channel_id]).wait()
 
-    # output a rachel-index.php file, plus index.htmlf symlink
-    with open(os.path.join(module_dir, "rachel-index.php"), "w") as f:
-        f.write('<!-- version="{version}" -->'.format(version=version))
-    os.symlink("rachel-index.php", os.path.join(module_dir, "index.htmlf"))
+        # read the channel info from the database
+        conn = sqlite3.connect(os.path.join(module_dir, "content", "databases", channel_id + ".sqlite3"))
+        c = conn.cursor()
+        version, name, description = c.execute("SELECT version, name, description FROM content_channelmetadata;").fetchone()
 
-    # copy in the files from files/
-    for filename in os.listdir(SOURCE_FILE_DIR):
-        srcpath = os.path.join(SOURCE_FILE_DIR, filename)
-        dstpath = os.path.join(module_dir, filename)
-        copy2(srcpath, dstpath)
+        # remove the existing files in the top level of the module
+        for filename in os.listdir(module_dir):
+            filepath = os.path.join(module_dir, filename)
+            if not os.path.isdir(filepath):
+                os.remove(filepath)
 
-    # update the database with the module metadata
-    # TODO!
+        # output a rachel-index.php file, plus index.htmlf symlink
+        with open(os.path.join(module_dir, "rachel-index.php"), "w") as f:
+            f.write('<!-- version="{version}" -->'.format(version=version))
+        os.symlink("rachel-index.php", os.path.join(module_dir, "index.htmlf"))
+
+        # copy in the files from files/
+        for filename in os.listdir(SOURCE_FILE_DIR):
+            srcpath = os.path.join(SOURCE_FILE_DIR, filename)
+            dstpath = os.path.join(module_dir, filename)
+            copy2(srcpath, dstpath)
+
+        # update the database with the module metadata
+        # TODO!
 
