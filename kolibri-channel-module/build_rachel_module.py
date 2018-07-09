@@ -6,7 +6,7 @@ import subprocess
 import tempfile
 import yaml
 
-from shutil import copyfile
+from shutil import copy2
 
 def mkdir_p(path):
     try:
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     # set a temporary home directory for the module
     os.environ["KOLIBRI_HOME"] = os.path.join(SOURCE_DIR, "tmphomes", module_name)
     mkdir_p(os.environ["KOLIBRI_HOME"])
-    copyfile(os.path.join(SOURCE_DIR, "db.sqlite3"), os.path.join(os.environ["KOLIBRI_HOME"], "db.sqlite3"))
+    copy2(os.path.join(SOURCE_DIR, "db.sqlite3"), os.path.join(os.environ["KOLIBRI_HOME"], "db.sqlite3"))
     
     # set the content destination to the folder inside the module
     os.environ["KOLIBRI_CONTENT_DIR"] = os.path.join(module_dir, "content")
@@ -84,7 +84,7 @@ if __name__ == "__main__":
     for filename in os.listdir(SOURCE_FILE_DIR):
         srcpath = os.path.join(SOURCE_FILE_DIR, filename)
         dstpath = os.path.join(module_dir, filename)
-        copyfile(srcpath, dstpath)
+        copy2(srcpath, dstpath)
 
     # update the database with the module metadata
     # TODO!
