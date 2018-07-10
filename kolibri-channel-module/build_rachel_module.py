@@ -138,7 +138,7 @@ if __name__ == "__main__":
             }
             keys = "({})".format(", ".join(data.keys()))
             values = "({})".format(", ".join("%s" for val in data.values()))
-            update = ", ".join("{key}=VALUE({key})".format(key=key) for key in data.keys())
+            update = ", ".join("{key}=VALUES({key})".format(key=key) for key in data.keys())
             sql = "INSERT INTO modules {} VALUES {} ON DUPLICATE KEY UPDATE {};".format(keys, values, update)
             db = MySQLdb.connect("localhost", "root", "", "rachelmods", charset="utf8", use_unicode=True)
             cursor = db.cursor()
