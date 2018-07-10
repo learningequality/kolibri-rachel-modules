@@ -1,3 +1,5 @@
 kolibri
 pyyaml
 ipython==5
+python-datauri
+MySQL-python

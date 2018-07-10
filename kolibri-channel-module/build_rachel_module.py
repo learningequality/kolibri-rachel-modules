@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 import glob
+import MySQLdb
 import os
 import sqlite3
 import subprocess
 import tempfile
 import yaml
 
+from datauri import DataURI
 from shutil import copy2
 
 def mkdir_p(path):
@@ -14,15 +16,23 @@ def mkdir_p(path):
     except OSError:
         pass
 
+def du(path):
+    """disk usage in kilobytes"""
+    return subprocess.check_output(['du','-sk', path]).split()[0].decode('utf-8')
+
+def filecount(path):
+    """number of files (recursively)"""
+    return len(subprocess.check_output(['find', path, '-type', 'f']).strip().split("\n"))
+
 os.environ["KOLIBRI_RUN_MODE"] = "rachel-module-builder"
 
 if __name__ == "__main__":
 
     LOCAL_CONTENT_SOURCE_DIR = os.getenv("KOLIBRI_LOCAL_CONTENT_SOURCE_DIR", None)
-    TARGET_MODULE_DIR = os.getenv("KOLIBRI_TARGET_MODULE_DIR", "/var/modules")
     CHANNEL_ID = os.getenv("KOLIBRI_CHANNEL_ID", None)
     SOURCE_DIR = os.path.dirname(os.path.realpath(__file__))
     SOURCE_FILE_DIR = os.path.join(SOURCE_DIR, "files")
+    TARGET_MODULE_DIR = os.path.join(SOURCE_DIR, os.getenv("KOLIBRI_TARGET_MODULE_DIR", "/var/modules"))
 
     if not os.path.isdir(TARGET_MODULE_DIR):
         raise Exception("KOLIBRI_TARGET_MODULE_DIR is set to {}, which isn't a directory...".format(TARGET_MODULE_DIR))
@@ -73,7 +83,13 @@ if __name__ == "__main__":
         # read the channel info from the database
         conn = sqlite3.connect(os.path.join(module_dir, "content", "databases", channel_id + ".sqlite3"))
         c = conn.cursor()
-        version, name, description = c.execute("SELECT version, name, description FROM content_channelmetadata;").fetchone()
+        version, name, description, thumbnail = c.execute("SELECT version, name, description, thumbnail FROM content_channelmetadata;").fetchone()
+        license = c.execute("SELECT license_name FROM content_contentnode GROUP BY license_name ORDER BY -count(license_name);").fetchone()[0] or ""
+        if license.startswith("CC"):
+            license = "({} 4.0)".format(license)
+        else:
+            license = None
+        conn.close()
 
         # remove the existing files in the top level of the module
         for filename in os.listdir(module_dir):
@@ -92,6 +108,42 @@ if __name__ == "__main__":
             dstpath = os.path.join(module_dir, filename)
             copy2(srcpath, dstpath)
 
+        # write the channel thumbnail into the module directory
+        if thumbnail:
+            uri = DataURI(thumbnail)
+            extension = uri.mimetype.split("/")[-1]
+            thumb_filename = "thumbnail." + extension
+            with open(os.path.join(module_dir, thumb_filename), "w") as f:
+                f.write(uri.data)
+        else:
+            thumb_filename = ""
+
         # update the database with the module metadata
-        # TODO!
+        try:
+            data = {
+                "title": name,
+                "description": description,
+                "moddir": module_name,
+                "lang": channel_data.get("language"),
+                "source_url": "", # TODO
+                "ksize": du(module_dir),
+                "file_count": filecount(module_dir),
+                "type": "kolibri-channel",
+                "cc_license": license,
+                # "prereq_id": , # TODO (depend on zz-kolibri-upgrade?)
+                # "prereq_note": ,
+                "logofilename": thumb_filename,
+                "is_hidden": False,
+                "version": str(version),
+            }
+            keys = "({})".format(", ".join(data.keys()))
+            values = "({})".format(", ".join("%s" for val in data.values()))
+            update = ", ".join("{key}=VALUE({key})".format(key=key) for key in data.keys())
+            sql = "INSERT INTO modules {} VALUES {} ON DUPLICATE KEY UPDATE {};".format(keys, values, update)
+            db = MySQLdb.connect("localhost", "root", "", "rachelmods", charset="utf8", use_unicode=True)
+            cursor = db.cursor()
+            cursor.execute(sql, tuple(data.values()))
+            db.close()
+        except MySQLdb.OperationalError as e:
+            print("ERROR: Unable to update module in database: {}".format(e))
 
