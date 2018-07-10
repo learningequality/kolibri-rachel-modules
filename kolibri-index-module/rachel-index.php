@@ -111,7 +111,7 @@
                 foreach($channels as $channel) {
                     $name = $channel["name"];
                     $description = $channel["description"];
-                    $channel_root_topic_id = $channel["root_id"];
+                    $channel_root_topic_id = $channel["root"];
                     $thumbnail = $channel["thumbnail"];
                     echo "
                         <li class='channel-list-item'>
