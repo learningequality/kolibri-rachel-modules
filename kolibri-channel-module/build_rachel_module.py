@@ -128,12 +128,12 @@ if __name__ == "__main__":
                 "source_url": "", # TODO
                 "ksize": du(module_dir),
                 "file_count": filecount(module_dir),
-                "type": "kolibri-channel",
+                "type": "kolibri",
                 "cc_license": license,
                 # "prereq_id": , # TODO (depend on zz-kolibri-upgrade?)
                 # "prereq_note": ,
                 "logofilename": thumb_filename,
-                "is_hidden": False,
+                # "is_hidden": "No",
                 "version": str(version),
             }
             keys = "({})".format(", ".join(data.keys()))
