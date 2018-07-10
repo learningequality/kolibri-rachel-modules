@@ -111,12 +111,12 @@
                 foreach($channels as $channel) {
                     $name = $channel["name"];
                     $description = $channel["description"];
-                    $channel_id = $channel["id"];
+                    $channel_root_topic_id = $channel["root_id"];
                     $thumbnail = $channel["thumbnail"];
                     echo "
                         <li class='channel-list-item'>
-                            <a href='$host/learn/#/topics/$channel_id'><img class='channel-thumbnail' src='$thumbnail'/></a>
-                            <a class='channel-title' href='$host/learn/#/topics/$channel_id'>$name</a>
+                            <a href='$host/learn/#/topics/$channel_root_topic_id'><img class='channel-thumbnail' src='$thumbnail'/></a>
+                            <a class='channel-title' href='$host/learn/#/topics/$channel_root_topic_id'>$name</a>
                             <div class='channel-description'>$description &nbsp;</div>
                         </li>
                     ";
