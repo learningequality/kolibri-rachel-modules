@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
+
 pushd "$(dirname "$0")"
 
 # make sure we're running the latest code
@@ -10,7 +12,7 @@ mkvirtualenv kolibri-rachel-modules
 pip install -r requirements.txt
 
 # build all the content channel modules
-pushd _lang_-kolibri-channel-_slug_
+pushd kolibri-channel-module-template
 KOLIBRI_CHANNEL_ID=* ./build_rachel_module.py
 popd
 
