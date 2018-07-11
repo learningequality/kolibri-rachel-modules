@@ -160,11 +160,11 @@ if __name__ == "__main__":
         # update the database with the module metadata
         try:
             data = {
-                "title": name,
+                "title": name + u" - Kolibri",
                 "description": description,
                 "moddir": module_name,
                 "lang": channel_data.get("language"),
-                "source_url": "", # TODO
+                "source_url": "", # TODO (if we had a Kolibri page showing channel info, could link there)
                 "ksize": du(module_dir),
                 "file_count": filecount(module_dir),
                 "type": "kolibri",
