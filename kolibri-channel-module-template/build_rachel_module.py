@@ -68,21 +68,36 @@ if __name__ == "__main__":
         # set a temporary home directory for the module
         os.environ["KOLIBRI_HOME"] = os.path.join(SOURCE_DIR, "tmphomes", module_name)
         mkdir_p(os.environ["KOLIBRI_HOME"])
-        copy2(os.path.join(SOURCE_DIR, "db.sqlite3"), os.path.join(os.environ["KOLIBRI_HOME"], "db.sqlite3"))
+        primary_database_path = os.path.join(os.environ["KOLIBRI_HOME"], "db.sqlite3")
+        copy2(os.path.join(SOURCE_DIR, "db.sqlite3"), primary_database_path)
 
         # set the content destination to the folder inside the module
         os.environ["KOLIBRI_CONTENT_DIR"] = os.path.join(module_dir, "content")
 
         # determine whether we need to import the channel again
         if os.path.isfile(channel_database_path):
+
+            # get the version in the downloaded database file
             conn = sqlite3.connect(channel_database_path)
             c = conn.cursor()
-            local_ver = c.execute("SELECT version FROM content_channelmetadata;").fetchone()[0]
+            module_ver = c.execute("SELECT version FROM content_channelmetadata;").fetchone()[0]
             conn.close()
+
+            # get the version in the cached primary database
+            conn = sqlite3.connect(primary_database_path)
+            c = conn.cursor()
+            ver_results = c.execute("SELECT version FROM content_channelmetadata WHERE id = '{}';".format(channel_id)).fetchone()
+            module_ver = ver_results[0] if ver_results else -1
+            conn.close()
+
+            # fetch the version number on Studio
             chdata = requests.get("https://studio.learningequality.org/api/public/v1/channels/lookup/" + channel_id).json()[0]
             remote_ver = chdata.get("version")
-            channel_update_needed = local_ver != remote_ver
+
+            channel_update_needed = (local_ver != remote_ver) or (module_dir != remote_ver)
+
         else:
+
             channel_update_needed = True
 
         # download the latest channel metadata, if needed
