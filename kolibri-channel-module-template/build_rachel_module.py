@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 import glob
+import hashlib
 import MySQLdb
 import os
+import requests
 import sqlite3
 import subprocess
 import tempfile
@@ -61,6 +63,7 @@ if __name__ == "__main__":
         module_name = "{language}-kolibri-channel-{slug}".format(**channel_data)
         module_dir = os.path.join(TARGET_MODULE_DIR, module_name)
         mkdir_p(module_dir)
+        channel_database_path = os.path.join(module_dir, "content", "databases", channel_id + ".sqlite3")
 
         # set a temporary home directory for the module
         os.environ["KOLIBRI_HOME"] = os.path.join(SOURCE_DIR, "tmphomes", module_name)
@@ -70,26 +73,48 @@ if __name__ == "__main__":
         # set the content destination to the folder inside the module
         os.environ["KOLIBRI_CONTENT_DIR"] = os.path.join(module_dir, "content")
 
-        # download the latest channel metadata
-        subprocess.Popen(["kolibri", "manage", "importchannel", "network", channel_id]).wait()
+        # determine whether we need to import the channel again
+        if os.path.isfile(channel_database_path):
+            conn = sqlite3.connect(channel_database_path)
+            c = conn.cursor()
+            local_ver = c.execute("SELECT version FROM content_channelmetadata;").fetchone()
+            conn.close()
+            chdata = requests.get("https://studio.learningequality.org/api/public/v1/channels/lookup/" + channel_id).json()
+            remote_ver = chdata.get("version")
+            content_update_needed = local_ver != remote_ver
+        else:
+            content_update_needed = True
 
-        # import content files from a location on disk, if available?
-        if LOCAL_CONTENT_SOURCE_DIR:
-            subprocess.Popen(["kolibri", "manage", "importcontent", "disk", channel_id, LOCAL_CONTENT_SOURCE_DIR]).wait()
+        if content_update_needed:
 
-        # download any new content files
-        subprocess.Popen(["kolibri", "manage", "importcontent", "network", channel_id]).wait()
+            # download the latest channel metadata
+            subprocess.Popen(["kolibri", "manage", "importchannel", "network", channel_id]).wait()
+
+            # import content files from a location on disk, if available?
+            if LOCAL_CONTENT_SOURCE_DIR:
+                subprocess.Popen(["kolibri", "manage", "importcontent", "disk", channel_id, LOCAL_CONTENT_SOURCE_DIR]).wait()
+
+            # download any new content files
+            subprocess.Popen(["kolibri", "manage", "importcontent", "network", channel_id]).wait()
 
         # read the channel info from the database
-        conn = sqlite3.connect(os.path.join(module_dir, "content", "databases", channel_id + ".sqlite3"))
+        conn = sqlite3.connect(channel_database_path)
         c = conn.cursor()
-        version, name, description, thumbnail = c.execute("SELECT version, name, description, thumbnail FROM content_channelmetadata;").fetchone()
+        channel_version, name, description, thumbnail = c.execute("SELECT version, name, description, thumbnail FROM content_channelmetadata;").fetchone()
         license = c.execute("SELECT license_name FROM content_contentnode GROUP BY license_name ORDER BY -count(license_name);").fetchone()[0] or ""
         if license.startswith("CC"):
             license = "({} 4.0)".format(license)
         else:
             license = None
         conn.close()
+
+        # construct the version from the channel_version combined with a hash of the files we'll be copying in, so it'll update if either changes
+        for filename in glob.glob(os.path.join(SOURCE_FILE_DIR, "*")):
+            data = ""
+            with open(filename, 'rb') as inputfile:
+                data += inputfile.read()
+            filehashes = hashlib.md5(data).hexdigest()[:6]
+        version = "{}-{}".format(channel_version, filehashes)
 
         # remove the existing files in the top level of the module
         for filename in os.listdir(module_dir):
@@ -130,11 +155,10 @@ if __name__ == "__main__":
                 "file_count": filecount(module_dir),
                 "type": "kolibri",
                 "cc_license": license,
-                # "prereq_id": , # TODO (depend on zz-kolibri-upgrade?)
+                # "prereq_id": , # TODO (depend on multi-kolibri-upgrade?)
                 # "prereq_note": ,
                 "logofilename": thumb_filename,
-                # "is_hidden": "No",
-                "version": str(version),
+                "version": version,
             }
             keys = "({})".format(", ".join(data.keys()))
             values = "({})".format(", ".join("%s" for val in data.values()))

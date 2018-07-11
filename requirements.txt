@@ -3,3 +3,4 @@ pyyaml
 ipython==5
 python-datauri
 MySQL-python
+requests
