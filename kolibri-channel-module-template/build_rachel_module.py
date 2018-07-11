@@ -87,14 +87,14 @@ if __name__ == "__main__":
             conn = sqlite3.connect(primary_database_path)
             c = conn.cursor()
             ver_results = c.execute("SELECT version FROM content_channelmetadata WHERE id = '{}';".format(channel_id)).fetchone()
-            module_ver = ver_results[0] if ver_results else -1
+            primary_ver = ver_results[0] if ver_results else -1
             conn.close()
 
             # fetch the version number on Studio
             chdata = requests.get("https://studio.learningequality.org/api/public/v1/channels/lookup/" + channel_id).json()[0]
             remote_ver = chdata.get("version")
 
-            channel_update_needed = (local_ver != remote_ver) or (module_dir != remote_ver)
+            channel_update_needed = (module_ver != remote_ver) or (primary_ver != remote_ver)
 
         else:
 
