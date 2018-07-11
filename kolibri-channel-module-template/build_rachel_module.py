@@ -77,25 +77,24 @@ if __name__ == "__main__":
         if os.path.isfile(channel_database_path):
             conn = sqlite3.connect(channel_database_path)
             c = conn.cursor()
-            local_ver = c.execute("SELECT version FROM content_channelmetadata;").fetchone()
+            local_ver = c.execute("SELECT version FROM content_channelmetadata;").fetchone()[0]
             conn.close()
             chdata = requests.get("https://studio.learningequality.org/api/public/v1/channels/lookup/" + channel_id).json()[0]
             remote_ver = chdata.get("version")
-            content_update_needed = local_ver != remote_ver
+            channel_update_needed = local_ver != remote_ver
         else:
-            content_update_needed = True
+            channel_update_needed = True
 
-        if content_update_needed:
-
-            # download the latest channel metadata
+        # download the latest channel metadata, if needed
+        if channel_update_needed:
             subprocess.Popen(["kolibri", "manage", "importchannel", "network", channel_id]).wait()
 
-            # import content files from a location on disk, if available?
-            if LOCAL_CONTENT_SOURCE_DIR:
-                subprocess.Popen(["kolibri", "manage", "importcontent", "disk", channel_id, LOCAL_CONTENT_SOURCE_DIR]).wait()
+        # import content files from a location on disk, if available?
+        if LOCAL_CONTENT_SOURCE_DIR:
+            subprocess.Popen(["kolibri", "manage", "importcontent", "disk", channel_id, LOCAL_CONTENT_SOURCE_DIR]).wait()
 
-            # download any new content files
-            subprocess.Popen(["kolibri", "manage", "importcontent", "network", channel_id]).wait()
+        # download any new content files
+        subprocess.Popen(["kolibri", "manage", "importcontent", "network", channel_id]).wait()
 
         # read the channel info from the database
         conn = sqlite3.connect(channel_database_path)
