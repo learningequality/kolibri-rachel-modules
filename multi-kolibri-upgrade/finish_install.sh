@@ -1,10 +1,13 @@
 # stop the Kolibri server so we can upgrade and configure the database
 service kolibri stop
 
+# ensure there is an entry for mounting /.data before the services, so they don't need customization
+grep -E -q '^/dev/sda1' /etc/fstab || echo '/dev/sda1 /.data ext4 defaults 0 0' >> /etc/fstab
+
 # upgrade Kolibri to the latest version
 DEBIAN_FRONTEND=noninteractive
 apt-get update
-yes | apt-get install kolibri -y -q
+yes | apt-get install -o Dpkg::Options::="--force-confnew" kolibri -y -q
 
 # ensure Kolibri knows that we'll be running as root
 echo -n "root" > /etc/kolibri/username

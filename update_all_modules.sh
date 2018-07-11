@@ -21,7 +21,7 @@ pushd en-kolibri-index
 version=$(egrep "v[0-9]+\.[0-9]+" rachel-index.php -o)
 cp * /var/modules/en-kolibri-index
 cp * /var/modules/en-kolibri
-echo "UPDATE modules SET version='$version' WHERE moddir = 'en-kolibri-index' OR moddir = 'en-kolibri';" | mysql rachelmods -u root
+echo "UPDATE modules SET version='$version', logofilename='kolibri-logo.svg' WHERE moddir = 'en-kolibri-index' OR moddir = 'en-kolibri';" | mysql rachelmods -u root
 popd
 
 # update the upgrade module
