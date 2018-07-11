@@ -79,7 +79,7 @@ if __name__ == "__main__":
             c = conn.cursor()
             local_ver = c.execute("SELECT version FROM content_channelmetadata;").fetchone()
             conn.close()
-            chdata = requests.get("https://studio.learningequality.org/api/public/v1/channels/lookup/" + channel_id).json()
+            chdata = requests.get("https://studio.learningequality.org/api/public/v1/channels/lookup/" + channel_id).json()[0]
             remote_ver = chdata.get("version")
             content_update_needed = local_ver != remote_ver
         else:
