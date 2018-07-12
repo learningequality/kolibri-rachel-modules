@@ -1,6 +1,7 @@
 #!/bin/bash
 
 source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
+deactivate 2> /dev/null
 
 pushd "$(dirname "$0")"
 
