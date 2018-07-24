@@ -12,11 +12,6 @@ git pull
 mkvirtualenv kolibri-rachel-modules
 pip install -r requirements.txt
 
-# build all the content channel modules
-pushd kolibri-channel-module-template
-KOLIBRI_CHANNEL_ID=* ./build_rachel_module.py
-popd
-
 # update the index modules
 pushd en-kolibri-index
 version=$(egrep "v[0-9]+\.[0-9]+" rachel-index.php -o)
@@ -36,6 +31,11 @@ version="$version (`md5sum * 2> /dev/null | md5sum | cut -c1-6`)" # include a ha
 echo '<!-- version="'$version'" -->' > /var/modules/zz-kolibri-upgrade/rachel-index.php
 ln -s rachel-index.php /var/modules/zz-kolibri-upgrade/index.htmlf
 echo "UPDATE modules SET version='$version' WHERE moddir = 'zz-kolibri-upgrade';" | mysql rachelmods -u root
+popd
+
+# build all the content channel modules
+pushd kolibri-channel-module-template
+KOLIBRI_CHANNEL_ID=* ./build_rachel_module.py
 popd
 
 deactivate
