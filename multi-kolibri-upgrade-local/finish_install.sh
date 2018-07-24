@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 service kolibri stop
 
 # upgrade Kolibri to the latest version
-DEBIAN_FRONTEND=noninteractive dpkg -i kolibri.deb --force-confnew
+DEBIAN_FRONTEND=noninteractive dpkg --force-confnew -i kolibri.deb
 
 # ensure Kolibri knows that we'll be running as root
 echo -n "root" > /etc/kolibri/username
