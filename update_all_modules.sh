@@ -38,14 +38,14 @@ echo "UPDATE modules SET version='$version' WHERE moddir = 'multi-kolibri-upgrad
 popd
 
 # update the local upgrade module
-pushd multi-kolibri-upgrade-local
-cp * /var/modules/multi-kolibri-upgrade-local
-ln -s rachel-index.php /var/modules/multi-kolibri-upgrade-local/index.htmlf
-wget -O /var/modules/multi-kolibri-upgrade-local/kolibri.deb https://learningequality.org/r/kolibri-deb-latest
-version=$(dpkg-deb -I /var/modules/multi-kolibri-upgrade-local/kolibri.deb | egrep "[0-9]+\.[0-9]+\.[0-9]+-[0-9]*ubuntu[0-9]*" -o | head -n 1)
+pushd zz-kolibri-upgrade
+cp * /var/modules/zz-kolibri-upgrade
+ln -s rachel-index.php /var/modules/zz-kolibri-upgrade/index.htmlf
+wget -O /var/modules/zz-kolibri-upgrade/kolibri.deb https://learningequality.org/r/kolibri-deb-latest
+version=$(dpkg-deb -I /var/modules/zz-kolibri-upgrade/kolibri.deb | egrep "[0-9]+\.[0-9]+\.[0-9]+-[0-9]*ubuntu[0-9]*" -o | head -n 1)
 version="$version (`md5sum * 2> /dev/null | md5sum | cut -c1-6`)" # include a hash of the scripts to ensure we trigger an upgrade if those change too
-echo '<!-- version="'$version'" -->' > /var/modules/multi-kolibri-upgrade-local/rachel-index.php
-echo "UPDATE modules SET version='$version' WHERE moddir = 'multi-kolibri-upgrade-local';" | mysql rachelmods -u root
+echo '<!-- version="'$version'" -->' > /var/modules/zz-kolibri-upgrade/rachel-index.php
+echo "UPDATE modules SET version='$version' WHERE moddir = 'zz-kolibri-upgrade';" | mysql rachelmods -u root
 popd
 
 deactivate

@@ -19,7 +19,7 @@ service kolibri stop
 # if so, we "deprovision" the database (remove the facility and user data, but leave the content)
 DATASET_ID=$(echo "SELECT id FROM kolibriauth_facilitydataset;" | sqlite3 /root/.kolibri/db.sqlite3 | head -n 1)
 USER_COUNT=$(echo "SELECT id FROM kolibriauth_facilityuser;" | sqlite3 /root/.kolibri/db.sqlite3 | wc -l)
-if [[ "$DATASET_ID" == "2637c9e5c23ed23603dbdced841f8a11" && "$USER_COUNT" == "1" ]]
+if [[ "$DATASET_ID" == "7f85d2537b70968e56db641a07364200" && "$USER_COUNT" == "1" ]]
 then
   echo "Database contains bad facility. Will now deprovision."
   cp -n /root/.kolibri/db.sqlite3 /root/.kolibri/db.sqlite3.bak
