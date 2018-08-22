@@ -21,9 +21,8 @@ sed -i '/^KOLIBRI_LISTEN_PORT=/ s/9090/9091/' /etc/kolibri/daemon.conf
 # set up nginx config
 cp kolibri_nginx_config /etc/nginx/sites-enabled/kolibri
 
-# stop Kolibri and nginx
+# stop Kolibri again, as upgrading it may have restarted it
 service kolibri stop
-service nginx stop
 
 # check whether the database contains the bad facility (that was shared across all devices) and hasn't had any signups
 # if so, we "deprovision" the database (remove the facility and user data, but leave the content)
@@ -38,6 +37,6 @@ else
   echo "Database does not contain bad facility. No need to do anything."
 fi
 
-# start Kolibri and nginx back up again
+# reload Nginx config and start Kolibri back up again
+service nginx reload
 service kolibri start
-service nginx start
