@@ -126,8 +126,8 @@
 
                 echo "
                     <p style='margin-left: 130px;'>
-                        You can <a href='<?php echo $host ?>/user/#/create_account'>create an account to track progress</a>.
-                        Later, you can <a href='<?php echo $host ?>'>login again and continue where you left off</a>.
+                        You can <a href=\"$host\"/user/#/create_account'>create an account to track progress</a>.
+                        Later, you can <a href=\"$host\">login again and continue where you left off</a>.
                     </p>
                 ";
 
