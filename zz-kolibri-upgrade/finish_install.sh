@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# set the path, to avoid "dpkg: error: PATH is not set" error
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games
+
 # change to the module directory
 cd "$(dirname "$0")"
 
