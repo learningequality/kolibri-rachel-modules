@@ -3,6 +3,9 @@
 # change to the module directory
 cd "$(dirname "$0")"
 
+# reload the daemons to avoid "Warning: kolibri.service changed on disk" message
+systemctl daemon-reload
+
 # stop the Kolibri server so we can upgrade and configure the database
 service kolibri stop
 
