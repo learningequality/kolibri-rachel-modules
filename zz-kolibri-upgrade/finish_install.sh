@@ -12,8 +12,18 @@ DEBIAN_FRONTEND=noninteractive dpkg --force-confnew -i kolibri.deb
 # ensure Kolibri knows that we'll be running as root
 echo -n "root" > /etc/kolibri/username
 
-# stop Kolibri again, as upgrading it may have restarted it
+# ensure there is an entry for mounting /.data before the services, so they don't need customization
+grep -E -q '^/dev/sda1' /etc/fstab || echo '/dev/sda1 /.data ext4 defaults 0 0' >> /etc/fstab
+
+# switch Kolibri to run on port 9091, so nginx can proxy to it
+sed -i '/^KOLIBRI_LISTEN_PORT=/ s/9090/9091/' /etc/kolibri/daemon.conf
+
+# set up nginx config
+cp kolibri_nginx_config /etc/nginx/sites-enabled/kolibri
+
+# stop Kolibri and nginx
 service kolibri stop
+service nginx stop
 
 # check whether the database contains the bad facility (that was shared across all devices) and hasn't had any signups
 # if so, we "deprovision" the database (remove the facility and user data, but leave the content)
@@ -28,5 +38,6 @@ else
   echo "Database does not contain bad facility. No need to do anything."
 fi
 
-# start Kolibri back up again
+# start Kolibri and nginx back up again
 service kolibri start
+service nginx start
