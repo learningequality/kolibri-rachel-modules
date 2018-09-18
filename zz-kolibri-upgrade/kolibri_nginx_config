@@ -5,7 +5,7 @@ upstream kolibri {
 log_format timed_combined '$remote_addr - $remote_user [$time_local] '
     '"$request" $status $body_bytes_sent '
     '"$http_referer" "$http_user_agent" '
-    '$request_time $upstream_response_time $pipe';
+    '$request_time $upstream_response_time $pipe $upstream_cache_status v1';
 access_log /root/.kolibri/nginx.log timed_combined;
 
 proxy_cache_path /root/.kolibri/nginxcache levels=1:2 keys_zone=my_cache:10m max_size=10g inactive=240h use_temp_path=off;
@@ -16,14 +16,20 @@ server {
 
     location /static {
         alias   /root/.kolibri/static;
+        expires 365d;
+        add_header Cache-Control "public";
     }
 
     location /content {
         alias   /root/.kolibri/content;
+        expires 365d;
+        add_header Cache-Control "public";
     }
 
     location /favicon.ico {
         empty_gif;
+        expires 365d;
+        add_header Cache-Control "public";
     }
 
     location /zipcontent {
@@ -31,6 +37,7 @@ server {
         add_header Content-Security-Policy "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: http://${http_host}";
         proxy_hide_header Content-Security-Policy;
         proxy_cache my_cache;
+        expires 365d;
         proxy_ignore_headers X-Accel-Expires Expires Cache-Control;
         proxy_cache_valid any 240h;
     }
