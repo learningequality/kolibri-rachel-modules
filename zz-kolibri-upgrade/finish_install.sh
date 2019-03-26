@@ -18,8 +18,10 @@ DEBIAN_FRONTEND=noninteractive dpkg --force-confnew -i kolibri.deb
 # ensure Kolibri knows that we'll be running as root
 echo -n "root" > /etc/kolibri/username
 
+# NOTE: THE FOLLOWING WAS COMMENTED OUT BASED ON DISCUSSIONS IN #worldpossible-learneq ON 2019-03-26
+
 # ensure there is an entry for mounting /.data before the services, so they don't need customization
-grep -E -q '^/dev/sda1' /etc/fstab || echo '/dev/sda1 /.data ext4 defaults 0 0' >> /etc/fstab
+#grep -E -q '^/dev/sda1' /etc/fstab || echo '/dev/sda1 /.data ext4 defaults 0 0' >> /etc/fstab
 
 # switch Kolibri to run on port 9091, so nginx can proxy to it
 sed -i '/^KOLIBRI_LISTEN_PORT=/ s/9090/9091/' /etc/kolibri/daemon.conf

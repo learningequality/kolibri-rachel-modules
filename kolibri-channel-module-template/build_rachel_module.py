@@ -34,7 +34,7 @@ if __name__ == "__main__":
     CHANNEL_ID = os.getenv("KOLIBRI_CHANNEL_ID", None)
     SOURCE_DIR = os.path.dirname(os.path.realpath(__file__))
     SOURCE_FILE_DIR = os.path.join(SOURCE_DIR, "files")
-    TARGET_MODULE_DIR = os.path.join(SOURCE_DIR, os.getenv("KOLIBRI_TARGET_MODULE_DIR", "/var/modules"))
+    TARGET_MODULE_DIR = os.path.join(SOURCE_DIR, os.getenv("KOLIBRI_TARGET_MODULE_DIR", "/var/staging_mods"))
 
     if not os.path.isdir(TARGET_MODULE_DIR):
         raise Exception("KOLIBRI_TARGET_MODULE_DIR is set to {}, which isn't a directory...".format(TARGET_MODULE_DIR))
@@ -157,31 +157,33 @@ if __name__ == "__main__":
         else:
             thumb_filename = ""
 
+        # NOTE: THE FOLLOWING WAS COMMENTED OUT BASED ON DISCUSSIONS IN #worldpossible-learneq ON 2019-03-26
+
         # update the database with the module metadata
-        try:
-            data = {
-                "title": name + u" - Kolibri",
-                "description": description,
-                "moddir": module_name,
-                "lang": channel_data.get("language"),
-                "source_url": "", # TODO (if we had a Kolibri page showing channel info, could link there)
-                "ksize": du(module_dir),
-                "file_count": filecount(module_dir),
-                "type": "kolibri",
-                "cc_license": license,
-                # "prereq_id": , # TODO (depend on multi-kolibri-upgrade?)
-                # "prereq_note": ,
-                "logofilename": thumb_filename,
-                "version": version,
-            }
-            keys = "({})".format(", ".join(data.keys()))
-            values = "({})".format(", ".join("%s" for val in data.values()))
-            update = ", ".join("{key}=VALUES({key})".format(key=key) for key in data.keys())
-            sql = "INSERT INTO modules {} VALUES {} ON DUPLICATE KEY UPDATE {};".format(keys, values, update)
-            db = MySQLdb.connect("localhost", "root", "", "rachelmods", charset="utf8mb4", use_unicode=True)
-            cursor = db.cursor()
-            cursor.execute(sql, tuple(data.values()))
-            db.close()
-        except MySQLdb.OperationalError as e:
-            print("ERROR: Unable to update module in database: {}".format(e))
+        # try:
+        #     data = {
+        #         "title": name + u" - Kolibri",
+        #         "description": description,
+        #         "moddir": module_name,
+        #         "lang": channel_data.get("language"),
+        #         "source_url": "", # TODO (if we had a Kolibri page showing channel info, could link there)
+        #         "ksize": du(module_dir),
+        #         "file_count": filecount(module_dir),
+        #         "type": "kolibri",
+        #         "cc_license": license,
+        #         # "prereq_id": , # TODO (depend on multi-kolibri-upgrade?)
+        #         # "prereq_note": ,
+        #         "logofilename": thumb_filename,
+        #         "version": version,
+        #     }
+        #     keys = "({})".format(", ".join(data.keys()))
+        #     values = "({})".format(", ".join("%s" for val in data.values()))
+        #     update = ", ".join("{key}=VALUES({key})".format(key=key) for key in data.keys())
+        #     sql = "INSERT INTO modules {} VALUES {} ON DUPLICATE KEY UPDATE {};".format(keys, values, update)
+        #     db = MySQLdb.connect("localhost", "root", "", "rachelmods", charset="utf8mb4", use_unicode=True)
+        #     cursor = db.cursor()
+        #     cursor.execute(sql, tuple(data.values()))
+        #     db.close()
+        # except MySQLdb.OperationalError as e:
+        #     print("ERROR: Unable to update module in database: {}".format(e))
 
